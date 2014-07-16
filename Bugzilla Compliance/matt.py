@@ -1,4 +1,14 @@
-import simplejson
+import simplejson, builder
 
 
-f = open()
+f = open("suite.txt")
+data_structure = simplejson.loads("\n".join(f.readlines()))
+f.close()
+
+f = open("results.txt")
+bug = simplejson.loads("\n".join(f.readlines()))["bugs"][0]
+f.close()
+
+suite = builder.build(data_structure)
+suite.evaluate(bug)
+print suite

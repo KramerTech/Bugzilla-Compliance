@@ -1,14 +1,17 @@
 import types
 
+protected_fields = ["child", "children"]
+ignore_if_none = ["error", "results"]
+
 class Abstract:
    def __init__(self, exp):
       self.exp = exp
-      self.result = None
+      self.result = "Not Evaluated"
       self.results = None
       self.error = None
       
    def __repr__(self):
-      return self.to_string(0)
+      return self.to_string()
 
    def err(self, error):
       self.error = error
@@ -27,9 +30,10 @@ class Abstract:
       
       #Populate fields
       for key, val in self.__dict__.iteritems():
-         if "child" not in key:
-            build += spacesPoint + key + ": "
-            build += (str(val.__name__) if isinstance(val, types.FunctionType) else str(val)) + "\n"
+         if key not in protected_fields:
+            if key not in ignore_if_none or val is not None:
+               build += spacesPoint + key + ": "
+               build += (str(val.__name__) if isinstance(val, types.FunctionType) else str(val)) + "\n"
 
       #Populate children recursively
       if "child" in self.__dict__ and self.child:
@@ -40,7 +44,7 @@ class Abstract:
       return build
    
    def clear(self):
-      self.result = None
+      self.result = "Not Evaluated"
       self.results = None
       self.error = None
       if "child" in self.__dict__ and self.child:
@@ -56,6 +60,16 @@ class Abstract:
          except:
             self.err("%s is not a valid member of data." % dive)
       return data
+
+
+class AlwaysReturn(Abstract):
+   def __init__(self, boolean):
+      Abstract.__init__(self, None)
+      self.boolean = boolean
+
+   def evaluate(self, data):
+      self.result = self.boolean
+      return self.result
 
 
 class Not(Abstract):
@@ -75,12 +89,13 @@ class Or(Abstract):
       
    def evaluate(self, data):
       for child in self.children:
-         self.result = child.evaluate(data)
          #ORing functionality
-         if self.result:
+         if child.evaluate(data):
+            self.result = True
             return True
       
       #Boolean, matches, error messages
+      self.result = False
       return False
 
 
@@ -91,10 +106,11 @@ class And(Abstract):
       
    def evaluate(self, data):
       for child in self.children:
-         self.result = child.evaluate(data)
          #ANDing functionality
-         if not self.result:
+         if not child.evaluate(data):
+            self.result = False
             return False
+      self.result = True
       return True
    
    
