@@ -1,0 +1,37 @@
+[
+   {
+      "name": "RHEL",
+      "desc": "Compliance checking for the RHEL product group."
+      "reqs": "product.contains(\"Red Hat Enterprise Linux\") & is_open.is(\"True\")",
+      "groups": [
+         {
+            "name": "ZStream",
+            "desc": "Compliance checking for bugs marked for zstream in RHEL."
+            "reqs": "keywords.contains(\"zstream\") + flags.foreach(name.contains(\".z\"),
+            "groups": []
+            "messages": []
+         }
+      ],
+      "messages": [
+         {
+            "name": "Priority is not set.",
+            "desc": "The priority flag for this bug is undefined.",
+            "type": "Problem",
+            "reqs": "priority.is(\"undefined\")"
+         },
+         {
+            "name": "Severity is not set.",
+            "desc": "The severity flag for this bug is undefined.",
+            "type": "Problem",
+            "reqs": "severity.is(\"undefined\")"
+         }
+      ]
+   },
+   {
+      "name": "RHEV",
+      "desc": "Compliance checking for the RHEV product group."
+      "reqs": "product.is(\"IMPOSSIBLE\")",
+      "groups": [],
+      "messages": []
+   }
+ ]
