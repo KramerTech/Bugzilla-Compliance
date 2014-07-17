@@ -18,12 +18,13 @@ class HierarchyObject:
       #If no expression, group/message is always True
       if len(reqs.strip()) == 0:
          self.condition = req_objects.AlwaysReturn(True)
+         return
       
       try:
          self.condition = tokenizer.tokenize(reqs)
       except Exception as e:
          self.condition = req_objects.AlwaysReturn(False)
-         raise e
+         self.compile_error = e.args[0] 
    
    def __repr__(self):
       return self.to_string()
@@ -96,9 +97,9 @@ class Group(HierarchyObject):
 
 class Message(HierarchyObject):
 
-   def __init__(self, name, reqs, active, status, desc):
+   def __init__(self, name, reqs, active, message_type, desc):
       HierarchyObject.__init__(self, name, reqs, active, desc)
-      self.status = status
+      self.message_type = message_type
       
    def evaluate(self, bug, testing = False):
       if self.active is False and not testing:
