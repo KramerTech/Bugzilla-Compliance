@@ -13,6 +13,15 @@ class Evaluator:
          build += product.to_string() + "\n"
       return build.strip() + "\n"
    
+   def get_messages(self):
+      messages = []
+      for product in self.products:
+         messages += product.get_messages("root")
+      return messages
+   
+   def reduce(self):
+      return [product.reduce() for product in self.products]
+   
    def html_string(self):
       build = self.to_string()
       build = build.replace("<", "&lt")

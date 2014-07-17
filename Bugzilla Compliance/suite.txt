@@ -6,6 +6,15 @@
       "expression":
  "product.foreach(this.is(\"e\")).iscase(\"['e', 'E', 'e', 'e']\")",
       "groups": [],
-      "messages": []
+      "messages": [
+      {
+         "name": "RHEL",
+         "message_type": "4",
+         "active": true,
+         "description": "Compliance checking for the RHEL product group.",
+         "expression":
+         "product.foreach(this.is(\"e\")).iscase(\"['e', 'E', 'e', 'e']\")"
+      }      
+      ]
    }
  ]

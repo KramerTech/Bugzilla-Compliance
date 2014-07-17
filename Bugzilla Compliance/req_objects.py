@@ -17,6 +17,19 @@ class Abstract:
       self.error = error
       raise Exception(error)
 
+   def reduce(self):
+      obj = {}
+      for key, val in self.__dict__.iteritems():
+         if key not in protected_fields:
+            if key not in ignore_if_none or val is not None:
+               obj[key] = (str(val.__name__) if isinstance(val, types.FunctionType) else str(val))
+      obj["name"] = self.__class__.__name__.upper()
+      if "child" in self.__dict__ and self.child:
+         obj["child"] = self.child.reduce()
+      if "children" in self.__dict__:
+         obj["children"] = [child.reduce() for child in self.children]
+      return obj
+
    def to_string(self, level = 0):
       spacesDot = ""
       spacesPoint = ""
@@ -41,7 +54,7 @@ class Abstract:
       if "children" in self.__dict__:
          for child in self.children:
             build += child.to_string(level + 1)
-      return build
+      return build.strip() + "\n"
    
    def clear(self):
       self.result = "Not Evaluated"
