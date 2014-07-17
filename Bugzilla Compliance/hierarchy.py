@@ -24,7 +24,8 @@ class HierarchyObject:
          self.condition = tokenizer.tokenize(reqs)
       except Exception as e:
          self.condition = req_objects.AlwaysReturn(False)
-         self.compile_error = e.args[0] 
+         self.compile_error = e.args[0]
+         #raise e
    
    def __repr__(self):
       return self.to_string()

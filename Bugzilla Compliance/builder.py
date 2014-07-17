@@ -5,10 +5,21 @@ class Evaluator:
       self.products = products
    
    def __repr__(self):
-      build = "[\n"
+      return self.to_string()
+   
+   def to_string(self):
+      build = ""
       for product in self.products:
          build += product.to_string() + "\n"
-      return build + "]"
+      return build
+   
+   def html_string(self):
+      build = self.to_string()
+      build.replace("<", "&lt")
+      build.replace(">", "&gt")
+      build.replace("\n", "<br>")
+      build.replace(" ", "&nbsp")
+      return build
    
    def evaluate(self, bug, testing = False):
       for product in self.products:
@@ -31,5 +42,6 @@ def make_group(data):
       group.messages.append(make_message(message))
    return group
 
+
 def make_message(data):
-   return hierarchy.Message(data["name"], data["expression"], data["active"], data["type"], data["description"])
+   return hierarchy.Message(data["name"], data["expression"], data["active"], data["message_type"], data["description"])

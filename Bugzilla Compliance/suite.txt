@@ -3,40 +3,9 @@
       "name": "RHEL",
       "active": true,
       "description": "Compliance checking for the RHEL product group.",
-      "expression": "product.contains(\"Red Hat Enterprise Linux\") & is_open.is(\"True\")",
-      "groups": [
-         {
-            "name": "ZStream",
-            "description": "Compliance checking for bugs marked for zstream in RHEL.",
-            "expression": "keywords.contains(\"zstream\") + flags.foreach(name.contains(\".z\"))",
-            "groups": [],
-            "active": true,
-            "messages": []
-         }
-      ],
-      "messages": [
-         {
-            "name": "Priority is not set.",
-            "description": "The priority flag for this bug is undefined.",
-            "type": "Problem",
-            "active": true,
-            "expression": "priority.is(\"undefined\")"
-         },
-         {
-            "name": "Severity is not set.",
-            "description": "The severity flag for this bug is undefined.",
-            "type": "Problem",
-            "active": true,
-            "expression": "severity.is(\"undefined\")"
-         }
-      ]
-   },
-   {
-      "name": "RHEV",
-      "description": "Compliance checking for the RHEV product group.",
-      "expression": "product.is(\"IMPOSSIBLE\")",
+      "expression":
+ "product.foreach(this.is(\"e\")).iscase(\"['e', 'E', 'e', 'e']\")",
       "groups": [],
-      "active": true,
       "messages": []
    }
  ]

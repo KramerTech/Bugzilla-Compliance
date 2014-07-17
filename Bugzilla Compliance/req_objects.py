@@ -1,11 +1,11 @@
 import types
 
 protected_fields = ["child", "children"]
-ignore_if_none = ["error", "results"]
+ignore_if_none = ["error", "results", "expression"]
 
 class Abstract:
-   def __init__(self, exp):
-      self.exp = exp
+   def __init__(self, expression):
+      self.expression = expression
       self.result = "Not Evaluated"
       self.results = None
       self.error = None
@@ -73,8 +73,8 @@ class AlwaysReturn(Abstract):
 
 
 class Not(Abstract):
-   def __init__(self, exp, child):
-      Abstract.__init__(self, exp)
+   def __init__(self, expression, child):
+      Abstract.__init__(self, expression)
       self.child = child
 
    def evaluate(self, data):
@@ -83,8 +83,8 @@ class Not(Abstract):
 
 
 class Or(Abstract):
-   def __init__(self, exp):
-      Abstract.__init__(self, exp)
+   def __init__(self, expression):
+      Abstract.__init__(self, expression)
       self.children = []
       
    def evaluate(self, data):
@@ -100,8 +100,8 @@ class Or(Abstract):
 
 
 class And(Abstract):
-   def __init__(self, exp):
-      Abstract.__init__(self, exp)
+   def __init__(self, expression):
+      Abstract.__init__(self, expression)
       self.children = []
       
    def evaluate(self, data):
@@ -115,16 +115,16 @@ class And(Abstract):
    
    
 class ForEach(Abstract):
-   def __init__(self, exp, data, child):
-      Abstract.__init__(self, exp)
+   def __init__(self, expression, data, child):
+      Abstract.__init__(self, expression)
       self.child = child
       self.data = data
       
    def evaluate(self, data):
       #Dive into selected data field
       data = self.data_dive(data)
-      if type(data) is not list:
-         self.err("ForEach can only be called on arrays.")
+      if type(data) is not list and type(data) is not str:
+         self.err("ForEach can only be called on arrays or strings.")
       
       #Evaluate child against each element, and compile results
       self.results = []
@@ -137,12 +137,12 @@ class ForEach(Abstract):
    
    
 class Function(Abstract):
-   def __init__(self, exp, data, function, params, child):
+   def __init__(self, expression, data, function, params, child):
       #Make the 'this' keyword automatically assumed
       if type(data) is list and len(data) > 0 and data[0] == "this":
          data = data[1:]
       
-      Abstract.__init__(self, exp)
+      Abstract.__init__(self, expression)
       self.data = data
       self.function = function
       self.params = params

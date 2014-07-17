@@ -204,7 +204,7 @@ def tokenize(expression):
             
             #Tokenize the group recursively
             my_function = tokenize(sub)
-            my_function.exp = "(" + my_function.exp + ")"
+            my_function.expression = "(" + my_function.expression + ")"
             
             #Pretend that this iteration of the loop was on the closing parenthesis.
             #So, we'll start reading after the ) on the next iteration. 
@@ -265,7 +265,7 @@ def tokenize(expression):
          #On (, we're now reading parameters instead of function
          elif char == C_OPEN:
             #Build first bit of object expression before things start changing
-            exp = ".".join(data) + "." + function + "(" if not temp else temp.exp + function + "("
+            exp = ".".join(data) + "." + function + "(" if not temp else temp.expression + function + "("
             
             #Find extent of parameters
             pos += 1
@@ -342,7 +342,7 @@ def tokenize(expression):
             
             #Handle NOTs
             if seen_not:
-               my_function = objs.Not("!" + my_function.exp, my_function)
+               my_function = objs.Not("!" + my_function.expression, my_function)
                seen_not = False
             
             #Add last token as a child
@@ -368,7 +368,7 @@ def tokenize(expression):
    if state == ENDED:
       #Handle NOTs
       if seen_not:
-         my_function = objs.Not("!" + my_function.exp, my_function)
+         my_function = objs.Not("!" + my_function.expression, my_function)
          seen_not = False
       
       if current_parent:
