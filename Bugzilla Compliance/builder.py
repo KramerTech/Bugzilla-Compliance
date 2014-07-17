@@ -11,14 +11,14 @@ class Evaluator:
       build = ""
       for product in self.products:
          build += product.to_string() + "\n"
-      return build
+      return build.strip() + "\n"
    
    def html_string(self):
       build = self.to_string()
-      build.replace("<", "&lt")
-      build.replace(">", "&gt")
-      build.replace("\n", "<br>")
-      build.replace(" ", "&nbsp")
+      build = build.replace("<", "&lt")
+      build = build.replace(">", "&gt")
+      build = build.replace("\n", "<br>")
+      build = build.replace(" ", "&nbsp")
       return build
    
    def evaluate(self, bug, testing = False):
