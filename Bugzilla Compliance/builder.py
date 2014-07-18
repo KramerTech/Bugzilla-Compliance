@@ -45,10 +45,12 @@ def build(data_structure):
    
 def make_group(data):
    group = hierarchy.Group(data["name"], data["expression"], data["active"], data["description"])
-   for sub in data["groups"]:
-      group.groups.append(make_group(sub))
-   for message in data["messages"]:
-      group.messages.append(make_message(message))
+   if "groups" in data:
+      for sub in data["groups"]:
+         group.groups.append(make_group(sub))
+   if "messages" in data:
+      for message in data["messages"]:
+         group.messages.append(make_message(message))
    return group
 
 
