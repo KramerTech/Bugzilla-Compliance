@@ -13,4 +13,4 @@ suite = builder.build(data_structure)
 suite.evaluate(bug)
 
 #print suite
-pprint.pprint(suite.get_messages())
+print suite

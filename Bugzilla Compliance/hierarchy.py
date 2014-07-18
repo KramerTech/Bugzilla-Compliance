@@ -57,7 +57,7 @@ class HierarchyObject:
       spacesDot = ""
       spacesPoint = ""
       for i in xrange(level): 
-         spacesDot += "..." if i == level - 1 else "   "
+         spacesDot += ("..." if i == level - 1 else "   ")
          spacesPoint += "   "
       spacesPoint += "-"
       
@@ -78,7 +78,7 @@ class HierarchyObject:
       if "messages" in self.__dict__:
          for message in self.messages:
             build += message.to_string(level + 1)
-      return build.strip() + "\n"
+      return build.rstrip() + "\n"
    
    def clear(self):
       self.result = "Not Evaluated"

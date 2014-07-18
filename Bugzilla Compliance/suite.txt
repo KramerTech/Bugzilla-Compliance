@@ -1,20 +1,70 @@
-[
-   {
-      "name": "RHEL",
-      "active": true,
-      "description": "Compliance checking for the RHEL product group.",
-      "expression":
- "product.foreach(this.is(\"e\")).iscase(\"['e', 'E', 'e', 'e']\")",
-      "groups": [],
-      "messages": [
-      {
-         "name": "RHEL",
-         "message_type": "4",
-         "active": true,
-         "description": "Compliance checking for the RHEL product group.",
-         "expression":
-         "product.foreach(this.is(\"e\")).iscase(\"['e', 'E', 'e', 'e']\")"
-      }      
-      ]
-   }
- ]
+[{
+  "isProduct": "True", 
+  "name": "RHEL", 
+  "messages": [
+    {
+      "name": "No Attached Sales Force Case", 
+      "expression": "!external_bugs.forEach(type.type.is(\"SFDC\"))", 
+      "active": "False", 
+      "message_type": "Warning", 
+      "message_id": "53c96ca05f29e6618151472f", 
+      "description": "This bug does not have an attached Sales Force case, and thus was not evaluated against GSS compliance. If the missing SF Case is an error, please add an appropriate case and rerun this bug for compliance."
+    }
+  ], 
+  "groups": [
+    {
+      "isProduct": "False", 
+      "name": "GSS", 
+      "groups": [
+        {
+          "isProduct": "False", 
+          "name": "ZStream", 
+          "messages": [
+            {
+              "name": "Test", 
+              "expression": "", 
+              "active": "False", 
+              "message_type": "Problem", 
+              "message_id": "53c96fbd5f29e66211c95b87", 
+              "description": "This group is on zstream. Nifty"
+            }
+          ], 
+          "active": "False", 
+          "path": [
+            {
+              "group_id": "53c96be05f29e6618151472b", 
+              "name": "RHEL"
+            }, 
+            {
+              "group_id": "53c96bf85f29e6618151472d", 
+              "name": "GSS"
+            }
+          ], 
+          "group_id": "53c96f2e5f29e66211c95b85", 
+          "expression": "keywords.contains(\"ZStream\") + flags.forEach(name.contains(\".z\"))", 
+          "description": "Bugs that are on ZStream."
+        }
+      ], 
+      "active": "False", 
+      "path": [
+        {
+          "group_id": "53c96be05f29e6618151472b", 
+          "name": "RHEL"
+        }
+      ], 
+      "group_id": "53c96bf85f29e6618151472d", 
+      "expression": "external_bugs.forEach(type.type.is(\"SFDC\"))", 
+      "description": "All bugs relevant to GSS have an attached Sales Force case."
+    }
+  ], 
+  "active": "False", 
+  "path": [
+    {
+      "group_id": "53c96be05f29e6618151472b", 
+      "name": "RHEL"
+    }
+  ], 
+  "group_id": "53c96be05f29e6618151472b", 
+  "expression": "product.contains(\"Red Hat Enterprise Linux\") & is_open.is(\"True\")", 
+  "description": ""
+}]

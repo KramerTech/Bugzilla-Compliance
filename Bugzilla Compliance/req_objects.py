@@ -54,7 +54,7 @@ class Abstract:
       if "children" in self.__dict__:
          for child in self.children:
             build += child.to_string(level + 1)
-      return build.strip() + "\n"
+      return build.rstrip() + "\n"
    
    def clear(self):
       self.result = "Not Evaluated"
