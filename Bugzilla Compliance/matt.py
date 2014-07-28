@@ -1,4 +1,4 @@
-import simplejson, builder, pprint
+import simplejson, builder
 
 
 f = open("suite.txt")

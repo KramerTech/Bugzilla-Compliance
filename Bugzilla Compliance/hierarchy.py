@@ -1,29 +1,41 @@
 import tokenizer, req_objects
 
+#These fields are not displayed in the simple-mapping of
+#an object's to_string function. They instead must be handled
+#separately because their strings cannot be easily represented.
 protected_fields = ["messages", "groups", "condition"]
+
+#If this field is empty, it will not appear in to_string's output.
 ignore_if_none = ["error"]
 
+
+#Abstract data type for the main group/message hierarchy.
+#Handles initialization, expression compilation, as well as
+#generalized reduction, to_string, and clear functions.
 class HierarchyObject:
-   def __init__(self, name, expression, active, description):
+   def __init__(self, name, expression, active, description, variables):
       self.expression = expression
       self.name = name
       self.description = description
       self.active = active
-      
+      self.variables = variables
+
+      #These fields are set upon evaluation, and cleared on clear
       self.result = "Not Evaluated"
       self.error = None
       
-      #If no expression, group/message is always True
+      #If no expression, always evaluate to True
       if len(expression.strip()) == 0:
          self.condition = req_objects.AlwaysReturn(True)
          return
       
+      #Handle exceptions created during expression compilation
       try:
-         self.condition = tokenizer.tokenize(expression)
+         self.condition = tokenizer.tokenize(expression, variables)
       except Exception as e:
+         #Expression can never evaluate to true if it did not compile
          self.condition = req_objects.AlwaysReturn(False)
          self.compilation_error = e.args[0]
-         #raise e
    
    def __repr__(self):
       return self.to_string()
@@ -93,27 +105,32 @@ class HierarchyObject:
       
    
 class Group(HierarchyObject):
-   def __init__(self, name, expression, active, description):
-      HierarchyObject.__init__(self, name, expression, active, description)
+   def __init__(self, name, expression, active, description, variables):
+      HierarchyObject.__init__(self, name, expression, active, description, variables)
       self.messages = []
       self.groups = []
    
+   #Overwrites abstract reduction method to add recursive reduction of subgroups and messages
    def reduce(self):
       obj = HierarchyObject.reduce(self)
       obj["groups"] = [group.reduce() for group in self.groups]
       obj["messages"] = [message.reduce() for message in self.messages]
       return obj
    
-   def evaluate(self, bug, testing = False):
+   
+   def evaluate(self, bug, testing):
+      #If this group is inactive and we're not error-testing, ignore.
       if self.active is False and not testing:
          self.result = "False (Inactive)"
          return
       
+      #Error handling
       try:
          self.result = self.condition.evaluate(bug)
       except Exception as e:
          self.result = "False (Error)"
          self.error = e.args[0]
+         #Do not evaluate any subcomponents if evaluation failed unless we're testing
          if not testing:
             return
          
@@ -125,17 +142,20 @@ class Group(HierarchyObject):
             message.evaluate(bug, testing)
       
 
+#Similar to Group class, but with simpler evaluation code and no custom reduction function.
 class Message(HierarchyObject):
 
-   def __init__(self, name, expression, active, message_type, description):
-      HierarchyObject.__init__(self, name, expression, active, description)
+   def __init__(self, name, expression, active, description, variables, message_type):
+      HierarchyObject.__init__(self, name, expression, active, description, variables)
       self.message_type = message_type
    
-   def evaluate(self, bug, testing = False):
+   def evaluate(self, bug, testing):
+      #If this group is inactive and we're not error-testing, ignore.
       if self.active is False and not testing:
          self.result = "False (Inactive)"
          return
       
+      #Error handling
       try:
          self.result = self.condition.evaluate(bug)
       except Exception as e:

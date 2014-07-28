@@ -2,73 +2,6 @@ import re
 import req_objects as objs
 import req_functions as funcs
 
-def params_to_array(params):
-   #States
-   START = 0
-   STRING = 1
-   NUMBER = 2
-   NEED_COMMA = 3
-   
-   #Setup
-   params = params.strip()
-   state = START
-   array = []
-   build = ""
-   count = 0
-   escape = False
-   
-   #Iterate through characters using FSM
-   for c in params:
-      #Ignore non-input space
-      if state != STRING and c == " ":
-         continue;
-      
-      #Expecting token
-      if state == START:
-         if c.isdigit():
-            state = NUMBER
-            count = count * 10 + int(c)
-         elif c == '"':
-            state = STRING
-         else:
-            raise Exception("Number or string expected, got %s" % c)
-      elif state == STRING:
-         if escape:
-            build += c;
-            escape = False
-         elif c == "\\":
-            escape = True;
-         elif c == '"':
-            array.append(build)
-            build = ""
-            state = NEED_COMMA
-         else:
-            build += c
-      elif state == NUMBER:
-         if c.isdigit():
-            count = count * 10 + int(c)
-         elif c == ',':
-            array.append(str(count))
-            count = 0
-            state = START
-         else:
-            raise Exception("Number or comma expected, got: %s" % c)
-      elif state == NEED_COMMA:
-         if c == ",":
-            state = START
-         else:
-            raise Exception("Comma expected, got: %s" % c)
-   
-   if state == NUMBER:
-      array.append(str(count))
-      state = START
-   
-   if not (state == START or state == NEED_COMMA):
-      return False, "Last parameter not closed."
-   
-   return array
-
-
 #Character code definitions
 C_AND = 0
 C_OR = 1
@@ -79,8 +12,9 @@ C_OPEN = 5
 C_CLOSE = 6
 C_AT = 7
 C_NOT = 8
-C_ALPHA = 9
-C_SPACE = 10
+C_COMMA = 9
+C_ALPHA = 10
+C_SPACE = 11
 
 
 #Simple char-type matching for code clarity
@@ -103,10 +37,130 @@ def char_type(c):
       return C_AT
    if c == "!":
       return C_NOT
+   if c == ",":
+      return C_COMMA
    if re.search("\w", c):
       return C_ALPHA
    if re.search("\s", c):
       return C_SPACE
+
+
+def params_to_array(params, variables):
+   #States
+   START = 0
+   STRING = 1
+   NUMBER = 2
+   NEED_COMMA = 3
+   VARIABLE = 4
+   STRING_VAR = 5
+   
+   #Space-relevant states
+   USE_SPACE = [STRING, VARIABLE, STRING_VAR]
+   
+   #Setup
+   params = params.strip()
+   state = START
+   array = []
+   var_params = []
+   build = ""
+   var_build = ""
+   count = 0
+   var_seen = False
+   escape = False
+   
+   #Iterate through characters using FSM
+   for c in params:
+      #Get character type
+      char = char_type(c)
+      
+      #Ignore irrelevant space
+      if char == C_SPACE and state not in USE_SPACE:
+         continue;
+      
+      #Expecting token
+      if state is START:
+         if c.isdigit():
+            state = NUMBER
+            count = count * 10 + int(c)
+         elif char is C_QUOTE:
+            state = STRING
+         elif char is C_AT:
+            state = VARIABLE
+         else:
+            raise Exception("Number or string expected, got %s" % c)
+      
+      #Currently reading a stand-alone variable
+      elif state is VARIABLE:
+         if char is C_ALPHA:
+            var_build += c
+         elif char is C_AT:
+            if not any(var_build in variable["name"] for variable in variables):
+               raise Exception("No variable named @%s@ in scope." % var_build)
+            var_params.append("@%s@" % var_build)
+            var_build = ""
+            state = NEED_COMMA
+         else:
+            raise Exception("Unexpected character %s while reading variable @%s..." % (c, var_build))   
+         
+      elif state is STRING:
+         if escape:
+            build += "\\" + c;
+            escape = False
+         elif char is C_BACK:
+            escape = True;
+         elif char is C_AT:
+            state = STRING_VAR
+         elif char is C_QUOTE:
+            if var_seen:
+               #Need to keep escape character if variable exists within parameter
+               var_params.append(build)
+            else:
+               #Otherwise, throw them away.
+               array.append(objs.unescape(build))
+            build = ""
+            var_seen = False
+            state = NEED_COMMA
+         else:
+            build += c
+      
+      #Currently reading a variable nested within a string
+      elif state is STRING_VAR:
+         if char is C_ALPHA:
+            var_build += c
+         elif char is C_AT:
+            if not any(var_build in variable["name"] for variable in variables):
+               raise Exception("No variable named @%s@ in scope." % var_build)
+            build += "@%s@" % var_build
+            var_build = ""
+            var_seen = True
+            state = STRING
+         else:
+            raise Exception("Unexpected character %s while reading variable @%s..." % (c, var_build))
+         
+      elif state is NUMBER:
+         if c.isdigit():
+            count = count * 10 + int(c)
+         elif c == ',':
+            array.append(str(count))
+            count = 0
+            state = START
+         else:
+            raise Exception("Number or comma expected, got: %s" % c)
+      
+      elif state is NEED_COMMA:
+         if char is C_COMMA:
+            state = START
+         else:
+            raise Exception("Comma expected, got: %s" % c)
+   
+   if state is NUMBER:
+      array.append(str(count))
+      state = START
+   
+   if state is not START and state is not NEED_COMMA:
+      raise Exception("Last parameter not closed within (%s)." % params)
+   
+   return array, var_params
 
 
 '''
@@ -153,7 +207,7 @@ which bug data can be passed and evaluated. The resulting data structure maintai
 error handling that can be used to debug expressions. This tokenizer also detects
 and reports top-level syntactical errors.
 '''
-def tokenize(expression):
+def tokenize(expression, variables):
    if len(expression.strip()) == 0:
       raise Exception("Cannot process empty expression.")
    
@@ -203,7 +257,7 @@ def tokenize(expression):
                raise 
             
             #Tokenize the group recursively
-            my_function = tokenize(sub)
+            my_function = tokenize(sub, variables)
             my_function.expression = "(" + my_function.expression + ")"
             
             #Pretend that this iteration of the loop was on the closing parenthesis.
@@ -226,7 +280,7 @@ def tokenize(expression):
          
          #Anything else is an error
          else:
-            raise Exception("BAD")
+            raise Exception("Unexpected character at start of new token.")
       
    
       elif state == DATA:
@@ -283,7 +337,7 @@ def tokenize(expression):
             within = function == "foreach"
             if within:
                #Create the within object, populating its child structure by recursively calling tokenize
-               my_function = objs.ForEach(exp, data, tokenize(sub))
+               my_function = objs.ForEach(exp, data, tokenize(sub, variables))
 
             #Standard function handling
             else:
@@ -294,16 +348,16 @@ def tokenize(expression):
                   raise Exception("Call to unknown function, %s." % function) 
                
                #Parse the parameters from within the parenthesis set
-               params = params_to_array(sub)
-               if len(params) == 0:
+               params, var_params = params_to_array(sub, variables)
+               if len(params) + len(var_params) == 0:
                   raise Exception("Function parameters cannot be empty, %s" % exp)
                
                
                #Check if nested function, and create appropriate object
                if temp:
-                  my_function = objs.Function(exp, None, function, params, temp)
+                  my_function = objs.Function(exp, None, function, params, var_params, variables, temp)
                else:
-                  my_function = objs.Function(exp, data, function, params, None)            
+                  my_function = objs.Function(exp, data, function, params, var_params, variables, None)            
             
             #Clear used up variables
             data = None
