@@ -1,9 +1,9 @@
 def __lower(data, params):
    if type(data) is list:
-      data = [element.lower() for element in data]
+      data = [str(element).lower() for element in data]
    else:
       data = str(data).lower()
-   params = [param.lower() for param in params]
+   params = [str(param).lower() for param in params]
    return data, params
 
 
@@ -88,7 +88,7 @@ def contains_case(data, params):
    if type(data) is not list:
       data = str(data)
    for param in params:
-      if param in data:
+      if str(param) in data:
          return True
    return False
 

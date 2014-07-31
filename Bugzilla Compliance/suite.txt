@@ -7,7 +7,7 @@
        "type": "static"
       },
 		{"name": "n",
-       "values": [{"value": "7"}],
+       "values": [{"value": 7}],
        "type": "dynamic"
       },
 		{"name": "v",

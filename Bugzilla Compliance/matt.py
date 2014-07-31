@@ -12,5 +12,6 @@ f.close()
 suite = builder.build(data_structure)
 suite.evaluate(bug)
 
+print suite
 #print suite
-pprint.pprint(suite.get_messages())
+#pprint.pprint(suite.get_messages())
