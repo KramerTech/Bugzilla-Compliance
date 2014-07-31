@@ -1,4 +1,4 @@
-import types, re
+import types, re, dynamic
 
 #These fields are not displayed in the simple-mapping of
 #an object's to_string function. They instead must be handled
@@ -193,18 +193,18 @@ class Function(Abstract):
       self.evaluated_against = None
    
    #Populates the list of parameters
-   def __populate_params(self):
+   def __populate_params(self, data):
       result = [] + self.params
       if self.variables == None:
          return result
       
       for variable in self.var_params:
-         result += self.__populate_variable(variable)
+         result += self.__populate_variable(variable, data)
 
       return result
       
    
-   def __populate_variable(self, variable, names = []):
+   def __populate_variable(self, variable, data, names = []):
       result = []
       
       #Find the variable:
@@ -266,9 +266,9 @@ class Function(Abstract):
       
       #Handle type
       if my_var["type"] == "static":
-         values = self.__populate_dynamic(my_var["values"])
+         values = self.__populate_dynamic([value["value"] for value in my_var["values"]], data)
       else:
-         values = my_var["values"]
+         values = [value["value"] for value in my_var["values"]]
       
       #Make sure the results are iterable
       if not hasattr(values, "__iter__"):
@@ -277,10 +277,10 @@ class Function(Abstract):
       #Now apply recursive brute-force population 
       for value in values:
          #The value that has already been evaluated gets the current build variable to detect loops
-         mergeA = self.__populate_variable(str(value), [build] + names)
+         mergeA = self.__populate_variable(str(value), data, [build] + names)
          #The untouched last part does not need the current build, because it could have the same
          #build on the same level, which is legal.
-         mergeB = self.__populate_variable(last, names)
+         mergeB = self.__populate_variable(last, data, names)
          
          #Merge the two results sets in every way possible
          first = unescape(first)
@@ -293,13 +293,13 @@ class Function(Abstract):
    
    #Handles the value of a dynamic variable, calling the correct function with
    #the correct parameters
-   def __populate_dynamic(self, value):
+   def __populate_dynamic(self, value, data):
       
       return value
    
       
    def evaluate(self, data):
-      params = self.__populate_params()
+      params = self.__populate_params(data)
       self.evaluated_against = params
       
       #Evaluate based on results of child function

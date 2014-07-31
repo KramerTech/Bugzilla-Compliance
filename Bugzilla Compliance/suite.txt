@@ -3,17 +3,40 @@
   "name": "RHEL", 
   "variables": [
 		{"name": "nvr",
-       "values": "rhel-@n@.@v@",
+       "values": [{"value": "rhel-@n@.@v@.@blah@"}],
        "type": "static"
       },
-      {"name": "n",
-       "values": [5,6,7],
+		{"name": "n",
+       "values": [{"value": "7"}],
+       "type": "dynamic"
+      },
+		{"name": "v",
+       "values": [{"value": "joebloe\\@gmail.com"}, {"value": "9"}],
        "type": "static"
       },
-      {"name": "v",
-       "values": [0,1,2],
-       "type": "static"
-      }
+	   {
+	   	"name": "blah", 
+	   	"type": "static", 
+		   "var_id": "53da5ed85f29e64978cd2c42", 
+		   "value_count": 3, 
+		   "parent_id": "53d932835f29e62743f7a452", 
+		   "values": [
+	     {
+	       "index": 0, 
+	       "value": "1"
+	     }, 
+	     {
+	       "index": 1, 
+	       "value": "2"
+	     }, 
+	     {
+	       "index": 2, 
+	       "value": "3"
+	     }
+	   ], 
+	   "expression": "", 
+	   "description": "This is the description"
+	 }
   	], 
   "messages": [
     {
