@@ -2,7 +2,7 @@
   "isProduct": "True", 
   "name": "RHEL", 
   "variables": [
-		{"name": "nvr",
+		{"name": "nv_r",
        "values": [{"value": "rhel-@n@.@v@.@blah@"}],
        "type": "static"
       },
@@ -176,6 +176,6 @@
     }
   ], 
   "group_id": "53c96be05f29e6618151472b", 
-  "expression": "flags.forEach(name.contains(\"@nvr@\"))", 
+  "expression": "flags.forEach(name.contains(\"@nv_r@\"))", 
   "description": ""
 }]

@@ -50,7 +50,7 @@ class HierarchyObject:
          for message in self.messages:
             messages += message.get_messages(path)
       #For messages 
-      elif self.result:
+      elif self.result == True:
          obj = self.reduce()
          obj["absolute_path"] = path
          messages.append(obj)

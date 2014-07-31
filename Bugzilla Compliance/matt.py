@@ -1,4 +1,4 @@
-import simplejson, builder
+import simplejson, builder, pprint
 
 
 f = open("suite.txt")
@@ -13,4 +13,4 @@ suite = builder.build(data_structure)
 suite.evaluate(bug)
 
 #print suite
-print suite
+pprint.pprint(suite.get_messages())
