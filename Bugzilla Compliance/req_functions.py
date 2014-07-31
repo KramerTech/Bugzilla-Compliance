@@ -1,3 +1,5 @@
+import re
+
 def __lower(data, params):
    if type(data) is list:
       data = [str(element).lower() for element in data]
@@ -138,6 +140,13 @@ def has_field(data, params):
    except:
       return False
    return True
+
+
+def regex(data, params):
+   regex = re.compile("params")
+   if re.search(regex, str(data)):
+      return True
+   return False
 
 
 func_map = {"is": is_,
