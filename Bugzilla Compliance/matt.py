@@ -10,7 +10,7 @@ bug = simplejson.loads("\n".join(f.readlines()))["bugs"][0]
 f.close()
 
 suite = builder.build(data_structure)
-suite.evaluate(bug)
+suite.evaluate(bug, True)
 
 print suite
 #print suite

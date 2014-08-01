@@ -193,18 +193,17 @@ class Function(Abstract):
       self.evaluated_against = None
    
    #Populates the list of parameters
-   def __populate_params(self, data):
-      result = [] + self.params
-      if self.variables == None:
-         return result
+   @staticmethod
+   def populate_variables(knowns, populate, data):
+      result = []
       
-      for variable in self.var_params:
-         result += self.__populate_variable(variable, data)
+      for variable in populate:
+         result += Function.populate_variable(knowns, variable, data)
 
       return result
       
-   
-   def __populate_variable(self, variable, data, names = []):
+   @staticmethod
+   def populate_variable(knowns, variable, data, names = []):
       result = []
       
       #Find the variable:
@@ -231,7 +230,7 @@ class Function(Abstract):
                   break;
                
                #Keep building variable name until @ encountered
-               elif re.search(self.CHAR_MATCHER, v):
+               elif re.search(Function.CHAR_MATCHER, v):
                   build += v
                   
                else:
@@ -255,9 +254,9 @@ class Function(Abstract):
          
       #Variable found and expression split. Match to correct dictionary
       my_var = None
-      for variable in self.variables:
-         if build == variable["name"]:
-            my_var = variable
+      for known in knowns:
+         if build == known["name"]:
+            my_var = known
             break;
       
       #If no dictionary found
@@ -265,8 +264,8 @@ class Function(Abstract):
          raise Exception("No variable named @%s@ found in current scope." % build)
       
       #Handle type
-      if my_var["type"] == "static":
-         values = self.__populate_dynamic([value["value"] for value in my_var["values"]], data)
+      if my_var["type"] == "dynamic":
+         values = Function.populate_dynamic([value["value"] for value in my_var["values"]], data)
       else:
          values = [value["value"] for value in my_var["values"]]
       
@@ -277,10 +276,10 @@ class Function(Abstract):
       #Now apply recursive brute-force population 
       for value in values:
          #The value that has already been evaluated gets the current build variable to detect loops
-         mergeA = self.__populate_variable(str(value), data, [build] + names)
+         mergeA = Function.populate_variable(knowns, str(value), data, [build] + names)
          #The untouched last part does not need the current build, because it could have the same
          #build on the same level, which is legal.
-         mergeB = self.__populate_variable(last, data, names)
+         mergeB = Function.populate_variable(knowns, last, data, names)
          
          #Merge the two results sets in every way possible
          first = unescape(first)
@@ -293,13 +292,14 @@ class Function(Abstract):
    
    #Handles the value of a dynamic variable, calling the correct function with
    #the correct parameters
-   def __populate_dynamic(self, value, data):
+   @staticmethod
+   def populate_dynamic(value, data):
       
       return value
    
       
    def evaluate(self, data):
-      params = self.__populate_params(data)
+      params = self.params + self.populate_variables(self.variables, self.var_params, data)
       self.evaluated_against = params
       
       #Evaluate based on results of child function

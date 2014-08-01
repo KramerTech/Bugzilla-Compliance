@@ -45,7 +45,7 @@
       "active": "False", 
       "message_type": "Warning", 
       "message_id": "53c96ca05f29e6618151472f", 
-      "description": "This bug does not have an attached Sales Force case, and thus was not evaluated against GSS compliance. If the missing SF Case is an error, please add an appropriate case and rerun this bug for compliance."
+      "description": "test - (@v@)"
     }
   ],  
   "groups": [

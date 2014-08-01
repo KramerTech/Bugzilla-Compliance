@@ -1,4 +1,4 @@
-import tokenizer, req_objects
+import tokenizer, req_objects, re
 
 #These fields are not displayed in the simple-mapping of
 #an object's to_string function. They instead must be handled
@@ -148,6 +148,103 @@ class Message(HierarchyObject):
    def __init__(self, name, expression, active, description, variables, message_type):
       HierarchyObject.__init__(self, name, expression, active, description, variables)
       self.message_type = message_type
+      self.populated_message = "Not Evaluated"
+      try:
+         self.message_builder = self.variable_message()
+      except Exception as e:
+         self.message_builder = None
+         self.message_error = e.args[0]
+
+
+   def variable_message(self):
+      string = self.description
+      escape = False
+      build = ""
+      variables = []
+      split_list = []
+      i = 0
+      while i < len(string):
+         c = string[i]
+         
+         #Last char was escape
+         if escape:
+            build += c
+            
+         #Read escape
+         elif c == "\\":
+            build += c
+            escape = True
+            
+         #Read variable
+         elif c == "@":
+            split_list.append(build)
+            build = c
+            
+            #Find the full name of the variable
+            ended = False
+            while i < len(string):
+               i += 1
+               c = string[i]
+               build += c
+               if c == "@":
+                  ended = True
+                  break;
+               elif not re.search("\w", c):
+                  raise Exception("Non alpha-numeric character %s found within variable." % c)
+            
+            #Make sure variable was closed
+            if not ended:
+               raise Exception("Variable %s... was not closed." % build)
+            
+            #Make sure there was something between the @s
+            if len(build) <= 2:
+               raise Exception("Empty variable in message description.")
+            
+            #Leave space for variable
+            split_list.append(None)
+            #Actually note the variable's name
+            variables.append(build)
+            build = ""
+            
+         #Keep building rest of message
+         else:
+            build += c
+         
+         #Update loop
+         i += 1
+         
+      #Add anything after last variable
+      split_list.append(build)
+      
+      #No reason putting in extra work when there's no variables
+      if len(variables) == 0:
+         return None
+      
+      self.message_vars = variables
+      return split_list
+         
+      
+   
+   def populate_message(self, bug):
+      #Populate all of the variables
+      populate = []
+      for variable in self.message_vars:
+         results = req_objects.Function.populate_variable(self.variables, variable, bug)
+         populate.append(", ".join(results))
+         
+      #Fill those variables into the message
+      result = ""
+      count = 0
+      for part in self.message_builder:
+         if part == None:
+            result += populate[count]
+            count += 1
+         else:
+            result += part 
+
+      return result
+            
+      
    
    def evaluate(self, bug, testing):
       #If this group is inactive and we're not error-testing, ignore.
@@ -161,6 +258,22 @@ class Message(HierarchyObject):
       except Exception as e:
          self.result = "False (Error)"
          self.error = e.args[0]
+      
+      if self.message_builder:
+         try:
+            self.populated_message = self.populate_message(bug)
+         except Exception as e:
+            self.populated_message = self.description
+            self.message_error = e.args[0]
+      else:
+         self.populated_message = self.description
+      
+      
+      
+      
+      
+      
+      
       
       
       

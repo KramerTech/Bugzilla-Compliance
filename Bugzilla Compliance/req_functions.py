@@ -1,4 +1,11 @@
-import re
+import re, inspect, sys, types
+from datetime import datetime
+
+
+format_string = "%Y%m%dT%H:%M:%S"
+user_format = "%Y-%m-%d"
+user_format_time = "%Y-%m-%dT%H:%M:%S"
+
 
 def __lower(data, params):
    if type(data) is list:
@@ -18,6 +25,13 @@ def __ints_only(params, name):
 def __one_param(params, name):
    if len(params) > 1:
       raise Exception("%s accepts only 1 parameter, got %d" % (name, len(params)))
+
+
+def __parse_date(string):
+   try:
+      return datetime.strptime(string, user_format_time), True
+   except:
+      return datetime.strptime(string, user_format), False
 
 
 def is_(data, params):
@@ -78,7 +92,12 @@ def are_all_in(data, params):
 
 
 def are_all_in_case(data, params):
-   pass
+   if type(data) is not list:
+      data = str(data)
+   for item in data:
+      if str(item) not in params:
+         return False
+   return True
 
 
 def contains_(data, params):
@@ -89,8 +108,10 @@ def contains_(data, params):
 def contains_case(data, params):
    if type(data) is not list:
       data = str(data)
+   else:
+      data = [str(i) for i in data]
    for param in params:
-      if str(param) in data:
+      if param in data:
          return True
    return False
 
@@ -101,7 +122,14 @@ def contains_all(data, params):
 
 
 def contains_all_case(data, params):
-   pass
+   if type(data) is not list:
+      data = str(data)
+   else:
+      data = [str(i) for i in data]
+   for param in params:
+      if param not in data:
+         return False
+   return True
 
 
 def size_is(data, params):
@@ -111,26 +139,84 @@ def size_is(data, params):
 
 def size_at_least(data, params):
    __ints_only(params, "SizeAtLeast")
-   __one_param(params, "SizeAtLeast")
-   return str(len(data)) >= int(params[0])
+   for param in params:
+      if str(len(data)) >= int(param):
+         return True
+   return False
 
 
 def size_at_most(data, params):
    __ints_only(params, "SizeAtMost")
-   __one_param(params, "SizeAtMost")
-   return str(len(data)) <= int(params[0])
+   for param in params:
+      if str(len(data)) <= int(param):
+         return True
+   return False
 
 
 def date_is(data, params):
-   pass
+   data = datetime.strptime(data, format_string)
+   for param in params:
+      dt, use_time = __parse_date(param)
+      if use_time and data == dt:
+         return True
+      elif not use_time and data.date() == dt.date():
+         return True
+   return False
 
 
 def date_at_least(data, params):
-   pass
+   data = datetime.strptime(data, format_string)
+   for param in params:
+      dt, use_time = __parse_date(param)
+      if use_time and data >= dt:
+         return True
+      elif not use_time and data.date() >= dt.date():
+         return True
+   return False
 
 
 def date_at_most(data, params):
-   pass
+   data = datetime.strptime(data, format_string)
+   for param in params:
+      dt, use_time = __parse_date(param)
+      if use_time and data <= dt:
+         return True
+      elif not use_time and data.date() <= dt.date():
+         return True
+   return False
+
+
+def date_is_format(data, params):
+   data = datetime.strptime(data, params[0])
+   for param in params[1:]:
+      dt, use_time = __parse_date(param)
+      if use_time and data == dt:
+         return True
+      elif not use_time and data.date() == dt.date():
+         return True
+   return False
+
+
+def date_at_least_format(data, params):
+   data = datetime.strptime(data, params[0])
+   for param in params[1:]:
+      dt, use_time = __parse_date(param)
+      if use_time and data >= dt:
+         return True
+      elif not use_time and data.date() >= dt.date():
+         return True
+   return False
+
+
+def date_at_most_format(data, params):
+   data = datetime.strptime(data, params[0])
+   for param in params[1:]:
+      dt, use_time = __parse_date(param)
+      if use_time and data <= dt:
+         return True
+      elif not use_time and data.date() <= dt.date():
+         return True
+   return False
 
 
 def has_field(data, params):
@@ -150,29 +236,10 @@ def regex(data, params):
    return False
 
 
-func_map = {"is": is_,
-       "iscase": is_case,
-       "isgreater": is_greater_than,
-       "isgreatercase": is_greater_than_case,
-       "isless": is_less_than,
-       "islesscase": is_less_than_case,
-       "isin": is_in,
-       "isincase": is_in_case,
-       "areallin": are_all_in,
-       "areallincase": are_all_in_case,
-       "contains": contains_,
-       "containscase": contains_case,
-       "containsall": contains_all,
-       "containsallcase": contains_all_case,
-       "sizeis": size_is,
-       "sizeatleast": size_at_least,
-       "sizeatmost": size_at_most,
-       "dateis": date_is,
-       "dateatleast": date_at_least,
-       "dateatmost": date_at_most,
-       "hasfield": has_field,
-       "regex": regex
-       }
-
-
-####
+#Populate function map
+func_map = {}
+for member in inspect.getmembers(sys.modules[__name__]):
+   if not member[0].startswith("_") and type(member[1]) is types.FunctionType:
+      func_map[member[0].replace("_", "").lower()] = member[1]
+      
+      
