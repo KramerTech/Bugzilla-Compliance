@@ -143,10 +143,8 @@ def has_field(data, params):
 
 
 def regex(data, params):
-   regex = re.compile("params")
-   if re.search(regex, str(data)):
-      return True
-   return False
+   regex = re.compile(params)
+   return re.search(regex, str(data))
 
 
 func_map = {"is": is_,
