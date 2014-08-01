@@ -168,4 +168,5 @@ func_map = {"is": is_,
        "dateatleast": date_at_least,
        "dateatmost": date_at_most,
        "hasfield": has_field,
+       "regex": regex
        }
