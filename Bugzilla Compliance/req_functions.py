@@ -176,4 +176,3 @@ func_map = {"is": is_,
 
 
 ####
-function_
