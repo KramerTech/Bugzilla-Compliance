@@ -18,7 +18,7 @@ class Abstract:
       self.error = None
       
    def __repr__(self):
-      return self.to_string()
+      return self.to_string().rstrip()
 
    def err(self, error):
       self.error = error

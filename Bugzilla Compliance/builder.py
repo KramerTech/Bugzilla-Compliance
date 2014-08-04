@@ -1,11 +1,12 @@
-import hierarchy
+import hierarchy, req_objects, tokenizer
 
-
-#This is the object returned after a call to the build function.
-#It is populated with the given data structure, and ready to
-#evaluate against bugs. The current state of the model is cleared
-#before each bug run, so its state needs to be saved after each
-#bug using the get_messages (and get_errors?) functions.
+'''
+This is the object returned after a call to the build function.
+It is populated with the given data structure, and ready to
+evaluate against bugs. The current state of the model is cleared
+before each bug run, so its state needs to be saved after each
+bug using the get_messages (and get_errors?) functions.
+'''
 class Evaluator:
    def __init__(self, products):
       self.products = products
@@ -47,6 +48,33 @@ class Evaluator:
       for product in self.products:
          product.clear()
          product.evaluate(bug, testing)
+         
+
+'''
+Builds a single expression, with the option of adding some
+variables. The expression can be evaluated against bugs, and
+contains most of the same functions as the regular suite.
+It is important to call .clear() on the expression before
+each new bug evaluation because, unlike the full suit, the
+single expression does not auto-clear before each call
+to .evaluate()
+'''
+def build_expression(expression, variables = []):
+   #If no expression, always evaluate to True
+   condition = None
+   if len(expression.strip()) == 0:
+      condition = req_objects.AlwaysReturn(True)
+      return condition
+   
+   #Handle exceptions created during expression compilation
+   try:
+      condition = tokenizer.tokenize(expression, variables)
+   except Exception as e:
+      #Expression can never evaluate to true if it did not compile
+      condition = req_objects.AlwaysReturn(False)
+      condition.error = e.args[0]
+
+   return condition
 
 
 #Creates the compliance suite from the DB products data structure
